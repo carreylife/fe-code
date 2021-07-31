@@ -6,7 +6,7 @@ import { ActionType, UseFetchActions } from '../TableTypes';
  * @param counter
  * @param onCleanSelected
  */
-export function useActionType<T>(
+export function useActionType(
   ref: React.MutableRefObject<ActionType | undefined>,
   action: UseFetchActions,
   props: {
@@ -29,5 +29,6 @@ export function useActionType<T>(
       });
     },
   };
+  // eslint-disable-next-line no-param-reassign
   ref.current = userAction;
 }
