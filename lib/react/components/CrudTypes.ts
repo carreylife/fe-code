@@ -121,7 +121,7 @@ export interface ICrud<T = unknown> {
 }
 
 export interface ICrudActionType {
-  reload: (resetPageIndex?: boolean) => void;
+  reload: (resetRowSelected?: boolean) => void;
   reloadAndRest: () => void;
   reset: () => void;
   clearSelected?: () => void;
