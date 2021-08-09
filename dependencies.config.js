@@ -3,6 +3,7 @@ module.exports = {
     react: '^17.0.2',
     vue: '^2.6.14',
     antd: '^4.16.8',
+    classnames: '^2.3.1',
     'react-dom': '^17.0.2',
     'element-ui': '^2.15.3',
     '@morgul/snowpack-plugin-vue2': '^0.4.2',
@@ -39,5 +40,14 @@ module.exports = {
     'node-sass': '^6.0.1',
     'less-loader': '^10.0.1',
     'style-loader': '^3.2.1',
+    'html-webpack-plugin': '^5.3.2',
+    'vue-loader': '^15.9.8',
+  },
+  componentDependencies: {
+    react: {
+      dependencies: {},
+      devDependencies: {},
+    },
+    vue: {},
   },
 };

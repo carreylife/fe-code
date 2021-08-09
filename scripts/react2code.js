@@ -1,9 +1,13 @@
+const ora = require('ora');
 const { join } = require('path');
 const { prompt } = require('inquirer');
-const ora = require('ora');
-const loadConfig = require('../lib/loadConfig');
-
-const { generateReactCode, initReactBase } = require('../lib/utils/react2Code');
+const { exec } = require('shelljs');
+const { existsSync, mkdirSync } = require('fs-extra');
+const {
+  generateReactCode,
+  initReactBase,
+  generateReactMock,
+} = require('../lib/utils/react2Code');
 
 const confirmQuestions = [
   { key: 'isNeedQuery', text: '查询' },
@@ -17,6 +21,12 @@ const confirmQuestions = [
 
 // 交互问题采集
 const questions = [
+  {
+    type: 'confirm',
+    name: 'isTypescript',
+    message: '是否使用 Typescript:',
+    default: 'Y',
+  },
   {
     type: 'input',
     name: 'model',
@@ -59,16 +69,6 @@ confirmQuestions.forEach(it =>
   }),
 );
 
-const config = loadConfig();
-// TODO 校验初始化与否，给予合理提示
-
-// 校验是否使用 typescript
-const isTypescript = config?.featureList?.includes('typescript');
-const templatePath = join(
-  __dirname,
-  `../lib/react/${isTypescript ? '' : 'jsx'}`,
-);
-
 const react2code = program => {
   program
     .command('react2code')
@@ -78,13 +78,20 @@ const react2code = program => {
     .option('-o, --output <output>', 'path of generation file')
 
     .action(({ output }) => {
+      // write path
+      const toPath = join(process.cwd(), output || '');
+
+      !existsSync(toPath) && mkdirSync(toPath);
+
       prompt(questions).then(answers => {
-        const { isReset } = answers;
+        const { isReset, isTypescript } = answers;
+
+        const reactLibPath = join(__dirname, '../lib/react');
+
+        // template path of jsx/tsx
+        const templatePath = join(reactLibPath, `${isTypescript ? '' : 'jsx'}`);
 
         Object.assign(answers, { isTs: isTypescript });
-
-        // write path
-        const toPath = join(process.cwd(), output || '');
 
         const spinner = ora(
           `🍉 generate react code of ${answers.model} ...... \n`,
@@ -98,12 +105,23 @@ const react2code = program => {
           // generate react crud code
           generateReactCode(templatePath, toPath, answers);
 
+          // generate mock json
+          generateReactMock(reactLibPath, toPath);
+
           setTimeout(() => {
-            spinner.text = 'generate success';
-            setTimeout(() => {
-              spinner.stop();
-            }, 400);
-          }, 1200);
+            spinner.text = 'format code... \n';
+
+            // format code with prettier
+            exec(
+              `npx prettier -u --write '${toPath}/(components|${answers.model})/*.{tsx,jsx,js,ts}'`,
+              () => {
+                spinner.text = 'generate success...';
+                setTimeout(() => {
+                  spinner.stop();
+                }, 400);
+              },
+            );
+          }, 500);
         } catch (error) {
           spinner.stop();
         }
